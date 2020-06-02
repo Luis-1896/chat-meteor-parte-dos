@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  app:
+    container_name: app
+    depends_on:
+      - mongo
+    image: chat
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - 80:3000
+    env_file: docker.env
+    volumes:
+      - $PWD/.uploads:/opt/chat-files
+    networks:
+      - chat-net
+  mongo:
+    container_name: mongo
+    command:
+      - --storageEngine=wiredTiger
+    image: mongo:4.2.5-bionic
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root123
+    volumes:
+      - $PWD/data:/data/db
+      - $PWD/database:/opt/database
+    networks:
+      - chat-net
+  crontab:
+    container_name: crontab
+    image: crontab
+    privileged: true
+    restart: always
+    depends_on:
+      - app
+    build:
+      context: .
+      dockerfile: cron-dockerfile
+    volumes:
+      - ./backups:/opt/backups
+    networks:
+      - chat-net
+networks:
+  chat-net:

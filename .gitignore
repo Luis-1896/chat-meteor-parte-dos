@@ -1,0 +1,12 @@
+node_modules/
+.idea
+.meteor/local
+.DS_STORE
+.cache
+.scannerwork
+settings/settings-development.json
+settings/settings-development-example.json
+sonar-project.properties
+.uploads
+version.desktop
+.desktop

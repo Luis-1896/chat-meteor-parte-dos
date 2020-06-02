@@ -1,0 +1,27 @@
+FROM ubuntu:16.04
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 4B7C549A058F8B6B
+RUN echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | tee /etc/apt/sources.list.d/mongodb-org.list
+RUN apt-get update && apt-get -y install cron nano curl tzdata mongodb-org-tools
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN apt-get install -y nodejs
+ENV TZ=America/Mexico_City
+ENV EDITOR nano
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN npm i -g ddp-tools
+
+# Copy cron file to the cron.d directory
+COPY cron-file /etc/cron.d/cron-file
+COPY doBackup.sh /opt/
+
+# Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/cron-file
+RUN chmod 777 /opt/doBackup.sh
+
+# Apply cron job
+RUN crontab /etc/cron.d/cron-file
+
+# Create the log file to be able to run tail
+RUN touch /var/log/cron.log
+
+# Run the command on container startup
+CMD ["cron", "-f"]
